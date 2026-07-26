@@ -24,21 +24,22 @@
       <div class="container">
         <h1 class="section-title">お問い合わせ</h1>
         <article class="card">
-          <form>
+          <form id="contact-form" action="https://formspree.io/f/mwvgwzbo" method="POST">
             <div class="form-grid">
               <div>
                 <label for="name">お名前</label>
-                <input id="name" name="name" type="text" placeholder="例：山田 太郎" />
+                <input id="name" name="name" type="text" placeholder="例：山田 太郎" required />
               </div>
               <div>
                 <label for="tel">電話番号</label>
-                <input id="tel" name="tel" type="tel" placeholder="例：03-0000-0000" />
+                <input id="tel" name="tel" type="tel" placeholder="例：03-0000-0000" required />
               </div>
               <div class="full">
                 <label for="message">お問い合わせ内容</label>
-                <textarea id="message" name="message" placeholder="ご質問・ご予約希望などをお書きください"></textarea>
+                <textarea id="message" name="message" placeholder="ご質問・ご予約希望などをお書きください" required></textarea>
               </div>
             </div>
+            <div id="form-status" class="status-message" role="status" aria-live="polite"></div>
             <button class="btn" type="submit" style="margin-top: 1rem; border: none; cursor: pointer;">送信する</button>
           </form>
         </article>
@@ -48,5 +49,55 @@
     <footer class="site-footer">
       <div class="container">© 2026 さくらクリニック</div>
     </footer>
+
+    <script>
+      const form = document.getElementById('contact-form');
+      const statusMessage = document.getElementById('form-status');
+      const submitButton = form.querySelector('button[type="submit"]');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const name = form.name.value.trim();
+        const tel = form.tel.value.trim();
+        const message = form.message.value.trim();
+
+        statusMessage.textContent = '';
+        statusMessage.className = 'status-message';
+
+        if (!name || !tel || !message) {
+          statusMessage.className = 'status-message error';
+          statusMessage.textContent = 'お名前・電話番号・お問い合わせ内容を入力してください。';
+          return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = '送信中...';
+
+        try {
+          const response = await fetch('https://formspree.io/f/mwvgwzbo', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json'
+            },
+            body: new FormData(form)
+          });
+
+          if (response.ok) {
+            statusMessage.className = 'status-message success';
+            statusMessage.textContent = '送信しました。お問い合わせありがとうございます。';
+            form.reset();
+          } else {
+            throw new Error('送信に失敗しました。');
+          }
+        } catch (error) {
+          statusMessage.className = 'status-message error';
+          statusMessage.textContent = '送信に失敗しました。時間をおいて再度お試しください。';
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = '送信する';
+        }
+      });
+    </script>
   </body>
 </html>
